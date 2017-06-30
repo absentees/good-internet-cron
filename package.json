@@ -1,0 +1,31 @@
+{
+	"name": "good-internet-cron",
+	"version": "1.0.0",
+	"description": "",
+	"main": "index.js",
+	"scripts": {
+		"test": "echo \"Error: no test specified\" && exit 1",
+		"start": "nodemon index.js"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/absentees/good-internet-cron.git"
+	},
+	"author": "",
+	"license": "ISC",
+	"bugs": {
+		"url": "https://github.com/absentees/good-internet-cron/issues"
+	},
+	"homepage": "https://github.com/absentees/good-internet-cron#readme",
+	"dependencies": {
+		"async": "^1.5.2",
+		"datocms-client": "^0.3.25",
+		"metascraper": "^1.0.6",
+		"nodemon": "^1.11.0",
+		"pageres": "^4.5.0",
+		"x-ray": "^2.3.2"
+	},
+	"devDependencies": {
+		"babel-preset-es2015": "^6.24.1"
+	}
+}
