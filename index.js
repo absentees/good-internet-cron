@@ -48,7 +48,7 @@ function screenshot(topWebsite, callback) {
 	console.log(`Taking screenshots of ${topWebsite.url}`);
 
 	const pageres = new Pageres({
-			delay: 10
+			delay: 0
 		})
 		.src(topWebsite.url, screenshotSizes, {
 			crop: false
@@ -58,7 +58,7 @@ function screenshot(topWebsite, callback) {
 		.then(() => {
 			console.log('done');
 
-			let screenshots = streams.map(function (stream) {
+			var screenshots = streams.map(function (stream) {
 				return stream.filename
 			});
 
@@ -71,29 +71,36 @@ function screenshot(topWebsite, callback) {
 function upload(topWebsite, callback) {
 	console.log("Uploading files");
 
-	client.uploadImage(screenshots[0]).then((uploadRequestDesktop) => {
+	async.parallel([
+		function (callback) {
+			client.uploadImage(screenshots[0]).then((uploadRequestDesktop) => {
+				callback(null, uploadRequestDesktop);
+			});
+		},
+		function (uploadRequestDesktop, callback) {
+			client.uploadImage(screenshots[1]).then((uploadRequestMobile) => {
+				callback(null, uploadRequestDesktop, uploadRequestMobile);
+			});
+		}
+	], function (err, results) {
+		console.log(results);
 
+		// client.items.create({
+		// 	itemType: '10825',
+		// 	name: topWebsite.title,
+		// 	url: topWebsite.url,
+		// 	description: description,
+		// 	desktop_screenshot: uploadRequestDesktop,
+		// 	mobile_screenshot: uploadRequestMobile
+		// }).then((record) => {
+		// 	callback(null, topWebsite);
+		// });
 	});
-	client.uploadImage(screenshots[1]).then((uploadRequestMobile) => {
-		
-	});
-	//
-	// let record = await client.items.create({
-	// 	itemType: '10825',
-	// 	name: siteDetails.title,
-	// 	url: url,
-	// 	description: description,
-	// 	desktop_screenshot: uploadRequestDesktop,
-	// 	mobile_screenshot: uploadRequestMobile
-	// });
-	//
-	// return Promise.resolve(record);
 
-	callback(null, topWebsite);
 }
 
 function deleteLocalFiles(paths, callback) {
-	paths.forEach(function(path){
+	paths.forEach(function (path) {
 		fs.unlink(path, (err) => {
 			if (err) {
 				console.error("Failed to delete local file: " + error);
