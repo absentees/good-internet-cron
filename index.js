@@ -1,12 +1,14 @@
 #!/usr/bin/env node
 
-'use strict';
-
+require('dotenv').config();
 var Xray = require('x-ray');
 var x = Xray();
 var Metascraper = require('metascraper');
 var async = require('async');
 var Pageres = require('pageres');
+const fs = require('fs');
+const SiteClient = require('datocms-client').SiteClient;
+const client = new SiteClient(process.env.DATOCMS_READ_WRITE);
 
 const screenshotSizes = ['1440x1024', 'iphone 5s'];
 const filenameFormat = '<%= url %>';
@@ -55,7 +57,7 @@ function screenshot(topWebsite, callback) {
 		})
 		.dest(process.cwd())
 		.run()
-		.then(() => {
+		.then((streams) => {
 			console.log('done');
 
 			var screenshots = streams.map(function (stream) {
@@ -71,36 +73,41 @@ function screenshot(topWebsite, callback) {
 function upload(topWebsite, callback) {
 	console.log("Uploading files");
 
-	async.parallel([
-		function (callback) {
-			client.uploadImage(screenshots[0]).then((uploadRequestDesktop) => {
-				callback(null, uploadRequestDesktop);
-			});
-		},
-		function (uploadRequestDesktop, callback) {
-			client.uploadImage(screenshots[1]).then((uploadRequestMobile) => {
-				callback(null, uploadRequestDesktop, uploadRequestMobile);
-			});
-		}
-	], function (err, results) {
-		console.log(results);
+	// async.waterfall([
+	// 	function (callback) {
+	// 		client.uploadImage(topWebsite.screenshots[0]).then((uploadRequestDesktop) => {
+	// 			console.log(uploadRequestDesktop);
+	// 			callback(null, uploadRequestDesktop);
+	// 		});
+	// 	},
+	// 	function (uploadRequestDesktop, callback) {
+	// 		client.uploadImage(topWebsite.screenshots[1]).then((uploadRequestMobile) => {
+	// 			console.log(uploadRequestMobile);
+	// 			callback(null, uploadRequestDesktop, uploadRequestMobile);
+	// 		});
+	// 	}
+	// ], function (err, uploadRequests) {
+	// 	if (err) {
+	// 		callback(err, uploadRequests);
+	// 	}
 
 		// client.items.create({
 		// 	itemType: '10825',
 		// 	name: topWebsite.title,
 		// 	url: topWebsite.url,
 		// 	description: description,
-		// 	desktop_screenshot: uploadRequestDesktop,
-		// 	mobile_screenshot: uploadRequestMobile
+		// 	desktop_screenshot: uploadRequests[0],
+		// 	mobile_screenshot: uploadRequests[1]
 		// }).then((record) => {
-		// 	callback(null, topWebsite);
+		// 	callback(null, record);
 		// });
-	});
+	// });
 
+	callback(null, topWebsite);
 }
 
-function deleteLocalFiles(paths, callback) {
-	paths.forEach(function (path) {
+function deleteLocalFiles(topWebsite, callback) {
+	topWebsite.screenshots.forEach(function (path) {
 		fs.unlink(path, (err) => {
 			if (err) {
 				console.error("Failed to delete local file: " + error);

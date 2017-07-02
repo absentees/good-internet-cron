@@ -20,6 +20,8 @@
 	"dependencies": {
 		"async": "^1.5.2",
 		"datocms-client": "^0.3.25",
+		"dotenv": "^4.0.0",
+		"fs": "^0.0.1-security",
 		"metascraper": "^1.0.6",
 		"nodemon": "^1.11.0",
 		"pageres": "^4.5.0",
