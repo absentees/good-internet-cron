@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 require('dotenv').config();
+require('babel-polyfill');
 var Xray = require('x-ray');
 var x = Xray();
 var Metascraper = require('metascraper');
@@ -52,7 +53,8 @@ function screenshot(topWebsite, callback) {
 	const pageres = new Pageres({
 			delay: 0
 		})
-		.src(topWebsite.url, screenshotSizes, {
+		// .src(topWebsite.url, screenshotSizes, {
+		.src('http://google.com', screenshotSizes, {
 			crop: false
 		})
 		.dest(process.cwd())
@@ -73,15 +75,28 @@ function screenshot(topWebsite, callback) {
 function upload(topWebsite, callback) {
 	console.log("Uploading files");
 
+	client.uploadImage(topWebsite.screenshots[0]).then((uploadRequestDesktop) => {
+
+		console.log("Uploaded desktop image");
+		console.log(uploadRequestDesktop);
+		callback(null, topWebsite);
+	}).catch((err) => {
+		console.log(err);
+		callback(err, topWebsite);
+	});
+
 	// async.waterfall([
 	// 	function (callback) {
+	// 		console.log(`Uploading image: ${topWebsite.screenshots[0]}`);
 	// 		client.uploadImage(topWebsite.screenshots[0]).then((uploadRequestDesktop) => {
+	// 			console.log("Uploaded desktop image");
 	// 			console.log(uploadRequestDesktop);
-	// 			callback(null, uploadRequestDesktop);
+	// 			callback(null, topWebsite);
 	// 		});
 	// 	},
 	// 	function (uploadRequestDesktop, callback) {
 	// 		client.uploadImage(topWebsite.screenshots[1]).then((uploadRequestMobile) => {
+	// 			console.log("Uploaded mobile image");
 	// 			console.log(uploadRequestMobile);
 	// 			callback(null, uploadRequestDesktop, uploadRequestMobile);
 	// 		});
@@ -90,20 +105,20 @@ function upload(topWebsite, callback) {
 	// 	if (err) {
 	// 		callback(err, uploadRequests);
 	// 	}
-
-		// client.items.create({
-		// 	itemType: '10825',
-		// 	name: topWebsite.title,
-		// 	url: topWebsite.url,
-		// 	description: description,
-		// 	desktop_screenshot: uploadRequests[0],
-		// 	mobile_screenshot: uploadRequests[1]
-		// }).then((record) => {
-		// 	callback(null, record);
-		// });
+	//
+	// 	callback(null, topWebsite);
+	//
+	// 	// client.items.create({
+	// 	// 	itemType: '10825',
+	// 	// 	name: topWebsite.title,
+	// 	// 	url: topWebsite.url,
+	// 	// 	description: description,
+	// 	// 	desktop_screenshot: uploadRequests[0],
+	// 	// 	mobile_screenshot: uploadRequests[1]
+	// 	// }).then((record) => {
+	// 	// 	callback(null, record);
+	// 	// });
 	// });
-
-	callback(null, topWebsite);
 }
 
 function deleteLocalFiles(topWebsite, callback) {
@@ -116,6 +131,8 @@ function deleteLocalFiles(topWebsite, callback) {
 			}
 		})
 	})
+
+	callback(null, topWebsite);
 }
 
 async.waterfall([
