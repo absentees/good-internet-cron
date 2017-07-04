@@ -51,16 +51,14 @@ function screenshot(topWebsite, callback) {
 	console.log(`Taking screenshots of ${topWebsite.url}`);
 
 	const pageres = new Pageres({
-			delay: 0
+			delay: 10
 		})
-		// .src(topWebsite.url, screenshotSizes, {
-		.src('http://google.com', screenshotSizes, {
+		.src(topWebsite.url, screenshotSizes, {
 			crop: false
 		})
 		.dest(process.cwd())
 		.run()
 		.then((streams) => {
-			console.log('done');
 
 			var screenshots = streams.map(function (stream) {
 				return stream.filename
@@ -75,50 +73,35 @@ function screenshot(topWebsite, callback) {
 function upload(topWebsite, callback) {
 	console.log("Uploading files");
 
-	client.uploadImage(topWebsite.screenshots[0]).then((uploadRequestDesktop) => {
+	async.parallel([
+		function (callback) {
+			client.uploadImage(topWebsite.screenshots[0]).then((uploadRequestDesktop) => {
+				callback(null, uploadRequestDesktop);
+			});
+		},
+		function (callback) {
+			client.uploadImage(topWebsite.screenshots[1]).then((uploadRequestMobile) => {
+				callback(null, uploadRequestMobile);
+			});
+		}
+	], function (err, uploadRequests) {
+		if (err) {
+			callback(err, uploadRequests);
+		}
 
-		console.log("Uploaded desktop image");
-		console.log(uploadRequestDesktop);
-		callback(null, topWebsite);
-	}).catch((err) => {
-		console.log(err);
-		callback(err, topWebsite);
+		client.items.create({
+			itemType: '10825',
+			name: topWebsite.title,
+			url: topWebsite.url,
+			description: "This is good.",
+			desktop_screenshot: uploadRequests[0],
+			mobile_screenshot: uploadRequests[1]
+		}).then((record) => {
+			callback(null, record);
+		}).catch((err) => {
+			console.log(`Error creating record: ${err}`);
+		});
 	});
-
-	// async.waterfall([
-	// 	function (callback) {
-	// 		console.log(`Uploading image: ${topWebsite.screenshots[0]}`);
-	// 		client.uploadImage(topWebsite.screenshots[0]).then((uploadRequestDesktop) => {
-	// 			console.log("Uploaded desktop image");
-	// 			console.log(uploadRequestDesktop);
-	// 			callback(null, topWebsite);
-	// 		});
-	// 	},
-	// 	function (uploadRequestDesktop, callback) {
-	// 		client.uploadImage(topWebsite.screenshots[1]).then((uploadRequestMobile) => {
-	// 			console.log("Uploaded mobile image");
-	// 			console.log(uploadRequestMobile);
-	// 			callback(null, uploadRequestDesktop, uploadRequestMobile);
-	// 		});
-	// 	}
-	// ], function (err, uploadRequests) {
-	// 	if (err) {
-	// 		callback(err, uploadRequests);
-	// 	}
-	//
-	// 	callback(null, topWebsite);
-	//
-	// 	// client.items.create({
-	// 	// 	itemType: '10825',
-	// 	// 	name: topWebsite.title,
-	// 	// 	url: topWebsite.url,
-	// 	// 	description: description,
-	// 	// 	desktop_screenshot: uploadRequests[0],
-	// 	// 	mobile_screenshot: uploadRequests[1]
-	// 	// }).then((record) => {
-	// 	// 	callback(null, record);
-	// 	// });
-	// });
 }
 
 function deleteLocalFiles(topWebsite, callback) {
