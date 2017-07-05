@@ -23,7 +23,7 @@ function sortWebsites(allWebsites, callback) {
 	});
 
 	// Only move on with the top website
-	callback(null, allWebsites[3]);
+	callback(null, allWebsites[0]);
 }
 
 function scrapeDesignerNews(callback) {
