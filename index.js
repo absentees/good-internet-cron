@@ -10,23 +10,20 @@ var Pageres = require('pageres');
 const fs = require('fs');
 const SiteClient = require('datocms-client').SiteClient;
 const client = new SiteClient(process.env.DATOCMS_READ_WRITE);
+const axios = require('axios');
+
 
 const screenshotSizes = ['1440x1024', 'iphone 5s'];
 const filenameFormat = '<%= url %>';
 
-var goodWebsite = {};
+function sortWebsites(allWebsites, callback) {
 
-function topWebsite(allWebsites, callback) {
-	var topWebsite;
-
-	allWebsites.forEach(function (website) {
-		if (!topWebsite) {
-			topWebsite = website;
-		} else if (parseInt(topWebsite.upvotes) < parseInt(website.upvotes)) {
-			topWebsite = website;
-		}
+	allWebsites.sort((a, b) => {
+		return b.upvotes - a.upvotes;
 	});
-	callback(null, topWebsite);
+
+	// Only move on with the top website
+	callback(null, allWebsites[0]);
 }
 
 function scrapeDesignerNews(callback) {
@@ -34,26 +31,35 @@ function scrapeDesignerNews(callback) {
 		url: '.montana-item-title@href',
 		upvotes: '.upvoted-number',
 	}])(function (err, allWebsites) {
+		allWebsites.map((website) => {
+			return {
+				url: website.url,
+				upvotes: parseInt(website.upvotes)
+			}
+		});
+
 		callback(null, allWebsites);
 	});
 }
 
-function getMeta(topWebsite, callback) {
+function getMeta(website, callback) {
 	Metascraper
-		.scrapeUrl(topWebsite.url)
+		.scrapeUrl(website.url)
 		.then((metadata) => {
-			topWebsite.title = metadata.title;
-			callback(null, topWebsite);
+			website.title = metadata.title;
+			return website;
 		});
+
+	callback(null, website);
 }
 
-function screenshot(topWebsite, callback) {
-	console.log(`Taking screenshots of ${topWebsite.url}`);
+function screenshot(website, callback) {
+	console.log(`Taking screenshots of ${website.url}`);
 
 	const pageres = new Pageres({
 			delay: 10
 		})
-		.src(topWebsite.url, screenshotSizes, {
+		.src(website.url, screenshotSizes, {
 			crop: false
 		})
 		.dest(process.cwd())
@@ -64,24 +70,30 @@ function screenshot(topWebsite, callback) {
 				return stream.filename
 			});
 
-			topWebsite.screenshots = screenshots;
+			website.screenshots = screenshots;
 
-			callback(null, topWebsite);
+			callback(null, website);
+		}).catch((err) => {
+			callback(err);
 		});
 }
 
-function upload(topWebsite, callback) {
+function upload(website, callback) {
 	console.log("Uploading files");
 
 	async.parallel([
 		function (callback) {
-			client.uploadImage(topWebsite.screenshots[0]).then((uploadRequestDesktop) => {
+			client.uploadImage(website.screenshots[0]).then((uploadRequestDesktop) => {
 				callback(null, uploadRequestDesktop);
+			}).catch((err) => {
+				callback(err);
 			});
 		},
 		function (callback) {
-			client.uploadImage(topWebsite.screenshots[1]).then((uploadRequestMobile) => {
+			client.uploadImage(website.screenshots[1]).then((uploadRequestMobile) => {
 				callback(null, uploadRequestMobile);
+			}).catch((err) => {
+				callback(err);
 			});
 		}
 	], function (err, uploadRequests) {
@@ -91,21 +103,22 @@ function upload(topWebsite, callback) {
 
 		client.items.create({
 			itemType: '10825',
-			name: topWebsite.title,
-			url: topWebsite.url,
+			name: website.title,
+			url: website.url,
 			description: "This is good.",
 			desktop_screenshot: uploadRequests[0],
 			mobile_screenshot: uploadRequests[1]
 		}).then((record) => {
-			callback(null, record);
+			console.log("Record uploaded.");
+			callback(null, website);
 		}).catch((err) => {
 			console.log(`Error creating record: ${err}`);
 		});
 	});
 }
 
-function deleteLocalFiles(topWebsite, callback) {
-	topWebsite.screenshots.forEach(function (path) {
+function deleteLocalFiles(website, callback) {
+	website.screenshots.forEach(function (path) {
 		fs.unlink(path, (err) => {
 			if (err) {
 				console.error("Failed to delete local file: " + error);
@@ -115,16 +128,27 @@ function deleteLocalFiles(topWebsite, callback) {
 		})
 	})
 
-	callback(null, topWebsite);
+	callback(null, website);
+}
+
+function publishSite(website, callback) {
+	console.log("Publishing site.");
+
+	axios.post(process.env.NETLIFY_DEPLOY_HOOK).then((res) => {
+		callback(null, "Published.");
+	}).catch((err) => {
+		callback(err);
+	});
 }
 
 async.waterfall([
 	scrapeDesignerNews,
-	topWebsite,
+	sortWebsites,
 	getMeta,
 	screenshot,
 	upload,
-	deleteLocalFiles
+	deleteLocalFiles,
+	publishSite
 ], function (err, results) {
 	if (err) {
 		console.log(`Something went wrong: ${err}`);
