@@ -22,7 +22,7 @@
 		"async": "^1.5.2",
 		"axios": "^0.16.2",
 		"babel-polyfill": "^6.23.0",
-		"datocms-client": "^0.3.25",
+		"datocms-client": "datocms/js-datocms-client",
 		"dotenv": "^4.0.0",
 		"fs": "^0.0.1-security",
 		"metascraper": "^1.0.6",
