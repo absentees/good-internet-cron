@@ -16,11 +16,15 @@ const filenameFormat = '<%= url %>';
 
 var goodWebsite = {};
 
-function compareVotes(a, b) {
-	if (true) {
-
-	}
-}
+// function compareVotes(a, b) {
+// 	if (parseInt(a.upvotes) < parseInt(b.upvotes)) {
+// 		return -1;
+// 	}
+// 	if (parseInt(a.upvotes) > parseInt(b.votes)) {
+// 		return 1;
+// 	}
+// 	return 0;
+// }
 
 function topWebsite(allWebsites, callback) {
 	var topWebsite;
@@ -40,6 +44,13 @@ function scrapeDesignerNews(callback) {
 		url: '.montana-item-title@href',
 		upvotes: '.upvoted-number',
 	}])(function (err, allWebsites) {
+		allWebsites.map((website) => {
+			return {
+				url: website.url,
+				upvotes: parseInt(website.upvotes)
+			}
+		});
+
 		callback(null, allWebsites);
 	});
 }
