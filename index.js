@@ -16,6 +16,12 @@ const filenameFormat = '<%= url %>';
 
 var goodWebsite = {};
 
+function compareVotes(a, b) {
+	if (true) {
+
+	}
+}
+
 function topWebsite(allWebsites, callback) {
 	var topWebsite;
 
@@ -97,7 +103,8 @@ function upload(topWebsite, callback) {
 			desktop_screenshot: uploadRequests[0],
 			mobile_screenshot: uploadRequests[1]
 		}).then((record) => {
-			callback(null, record);
+			console.log("Record uploaded.");
+			callback(null, topWebsite);
 		}).catch((err) => {
 			console.log(`Error creating record: ${err}`);
 		});
