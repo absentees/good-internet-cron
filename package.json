@@ -19,6 +19,7 @@
 	},
 	"homepage": "https://github.com/absentees/good-internet-cron#readme",
 	"dependencies": {
+		"airtable": "^0.5.2",
 		"async": "^1.5.2",
 		"axios": "^0.16.2",
 		"babel-polyfill": "^6.23.0",

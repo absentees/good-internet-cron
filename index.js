@@ -12,7 +12,6 @@ const SiteClient = require('datocms-client').SiteClient;
 const client = new SiteClient(process.env.DATOCMS_READ_WRITE);
 const axios = require('axios');
 
-
 const screenshotSizes = ['1440x1024', 'iphone 5s'];
 const filenameFormat = '<%= url %>';
 
