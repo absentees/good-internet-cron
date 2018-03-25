@@ -11,6 +11,8 @@ const fs = require('fs');
 const SiteClient = require('datocms-client').SiteClient;
 const client = new SiteClient(process.env.DATOCMS_READ_WRITE);
 const axios = require('axios');
+var CronJob = require('cron').CronJob;
+
 
 const screenshotSizes = ['1440x1024', 'iphone 5s'];
 const filenameFormat = '<%= url %>';
@@ -59,7 +61,8 @@ function screenshot(website, callback) {
 			delay: 10
 		})
 		.src(website.url, screenshotSizes, {
-			crop: false
+			crop: true,
+			format: jpg
 		})
 		.dest(process.cwd())
 		.run()
@@ -140,18 +143,28 @@ function publishSite(website, callback) {
 	});
 }
 
-async.waterfall([
-	scrapeDesignerNews,
-	sortWebsites,
-	getMeta,
-	screenshot,
-	upload,
-	deleteLocalFiles,
-	publishSite
-], function (err, results) {
-	if (err) {
-		console.log(`Something went wrong: ${err}`);
-	}
 
-	console.log(results);
-});
+var cronJob = new CronJob('0 0 */12 * * *', function() {
+	// Check sites once a day
+	async.waterfall([
+		scrapeDesignerNews,
+		sortWebsites,
+		getMeta,
+		screenshot,
+		upload,
+		deleteLocalFiles,
+		publishSite
+	], function (err, results) {
+		if (err) {
+			console.log(`Something went wrong: ${err}`);
+		}
+		console.log(results);
+	});
+}, null, false, 'Australia/Sydney');
+
+cronJob.start();
+console.log("Job is: " + cronJob.running + " – checking for good internet daily.");
+
+module.exports = (req, res) => {
+  res.end('Good Internet cron is: ' + cronJob.running)
+}

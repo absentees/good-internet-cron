@@ -1,11 +1,10 @@
 {
 	"name": "good-internet-cron",
 	"version": "1.0.0",
-	"description": "",
+	"description": "Good Internet daily",
 	"main": "index.js",
 	"scripts": {
-		"test": "echo \"Error: no test specified\" && exit 1",
-		"start": "node index.js",
+		"start": "micro index.js",
 		"dev": "nodemon index.js"
 	},
 	"repository": {
@@ -23,12 +22,20 @@
 		"async": "^1.5.2",
 		"axios": "^0.16.2",
 		"babel-polyfill": "^6.23.0",
+		"cron": "^1.3.0",
 		"datocms-client": "git://github.com/absentees/js-datocms-client",
 		"dotenv": "^4.0.0",
 		"fs": "^0.0.1-security",
 		"metascraper": "^1.0.6",
+		"micro": "^9.1.4",
 		"nodemon": "^1.11.0",
 		"pageres": "^4.5.0",
 		"x-ray": "^2.3.2"
+	},
+	"now": {
+		"env": {
+			"NETLIFY_DEPLOY_HOOK": "@good_netlify_hook",
+			"DATOCMS_READ_WRITE": "@good_dato_key"
+		}
 	}
 }
