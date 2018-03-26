@@ -12,7 +12,12 @@ const SiteClient = require('datocms-client').SiteClient;
 const client = new SiteClient(process.env.DATOCMS_READ_WRITE);
 const axios = require('axios');
 var CronJob = require('cron').CronJob;
-
+const Airtable = require('airtable');
+Airtable.configure({
+	endpointUrl: 'https://api.airtable.com',
+	apiKey: process.env.GOOD_INTERNET_AIRTABLE_API_KEY
+});
+var base = Airtable.base(process.env.GOOD_INTERNET_BASE_ID);
 
 const screenshotSizes = ['1440x1024', 'iphone 5s'];
 const filenameFormat = '<%= url %>';
@@ -30,8 +35,12 @@ function sortWebsites(allWebsites, callback) {
 function scrapeDesignerNews(callback) {
 	x('https://www.designernews.co/badges/design', '.story-list-item', [{
 		url: '.montana-item-title@href',
-		upvotes: '.upvoted-number',
+		upvotes: '.upvoted-number'
 	}])(function (err, allWebsites) {
+		if(err) {
+			console.error(err);
+		}
+
 		allWebsites.map((website) => {
 			return {
 				url: website.url,
@@ -80,7 +89,26 @@ function screenshot(website, callback) {
 		});
 }
 
-function upload(website, callback) {
+function uploadToImgur(website, callback){
+	console.log("Uploading images to Imgur");
+
+	console.log("Uploading images to Imgur");
+	imgur.setCredentials(process.env.IMGUR_USER, process.env.IMGUR_PASSWORD, process.env.IMGUR_CLIENTID);
+
+	// Upload images to imgur good internet folder
+	imgur.uploadImages(screenshots, 'File', process.env.GOOD_INTERNET_IMGUR_ALBUM_ID)
+	.then(function(images){
+		images.map(function(images){
+			return images.
+		})
+		callback(null);
+	})
+	.catch(function(err){
+		callback(err);
+	});
+}
+
+function addToAirtable(website, callback) {
 	console.log("Uploading files");
 
 	base("Good").create(
@@ -135,14 +163,15 @@ function publishSite(website, callback) {
 }
 
 
-var cronJob = new CronJob('0 * * * * *', function() {
+// var cronJob = new CronJob('0 * * * * *', function() {
 	// Check sites once a day
 	async.waterfall([
 		scrapeDesignerNews,
 		sortWebsites,
 		getMeta,
 		screenshot,
-		upload,
+		uploadToImgur,
+		addToAirtable,
 		deleteLocalFiles,
 		publishSite
 	], function (err, results) {
@@ -151,11 +180,11 @@ var cronJob = new CronJob('0 * * * * *', function() {
 		}
 		console.log(results);
 	});
-}, null, false, 'Australia/Sydney');
+// }, null, false, 'Australia/Sydney');
 
-cronJob.start();
-console.log("Job is: " + cronJob.running + " – checking for good internet daily.");
+// cronJob.start();
+// console.log("Job is: " + cronJob.running + " – checking for good internet daily.");
 
-module.exports = (req, res) => {
-  res.end('Good Internet cron is: ' + cronJob.running)
-}
+// module.exports = (req, res) => {
+//   res.end('Good Internet cron is: ' + cronJob.running)
+// }
