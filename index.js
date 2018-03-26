@@ -62,7 +62,7 @@ function screenshot(website, callback) {
 		})
 		.src(website.url, screenshotSizes, {
 			crop: true,
-			format: jpg
+			format: "jpg"
 		})
 		.dest(process.cwd())
 		.run()
@@ -83,40 +83,31 @@ function screenshot(website, callback) {
 function upload(website, callback) {
 	console.log("Uploading files");
 
-	async.parallel([
-		function (callback) {
-			client.uploadImage(website.screenshots[0]).then((uploadRequestDesktop) => {
-				callback(null, uploadRequestDesktop);
-			}).catch((err) => {
-				callback(err);
-			});
+	base("Good").create(
+		{
+			Name: website.name,
+			URL: website.url,
+			Description: website.description,
+			"Desktop Screenshot": [
+				{
+					url:
+						"https://www.datocms-assets.com" + website.desktopScreenshot.path
+				}
+			],
+			"Mobile Screenshot": [
+				{
+					url:
+					"https://www.datocms-assets.com" + website.mobileScreenshot.path
+				}
+			]
 		},
-		function (callback) {
-			client.uploadImage(website.screenshots[1]).then((uploadRequestMobile) => {
-				callback(null, uploadRequestMobile);
-			}).catch((err) => {
-				callback(err);
-			});
+		function(err, website) {
+			if (err) {
+				console.log(`Something went wrong creating website: ${err}`);
+			}
+			callback();
 		}
-	], function (err, uploadRequests) {
-		if (err) {
-			callback(err, uploadRequests);
-		}
-
-		client.items.create({
-			itemType: '10825',
-			name: website.title,
-			url: website.url,
-			description: "This is good.",
-			desktop_screenshot: uploadRequests[0],
-			mobile_screenshot: uploadRequests[1]
-		}).then((record) => {
-			console.log("Record uploaded.");
-			callback(null, website);
-		}).catch((err) => {
-			console.log(`Error creating record: ${err}`);
-		});
-	});
+	);
 }
 
 function deleteLocalFiles(website, callback) {
@@ -144,7 +135,7 @@ function publishSite(website, callback) {
 }
 
 
-var cronJob = new CronJob('0 0 */12 * * *', function() {
+var cronJob = new CronJob('0 * * * * *', function() {
 	// Check sites once a day
 	async.waterfall([
 		scrapeDesignerNews,
