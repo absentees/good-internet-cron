@@ -8,10 +8,10 @@ var Metascraper = require('metascraper');
 var async = require('async');
 var Pageres = require('pageres');
 const fs = require('fs');
-const SiteClient = require('datocms-client').SiteClient;
-const client = new SiteClient(process.env.DATOCMS_READ_WRITE);
 const axios = require('axios');
 var CronJob = require('cron').CronJob;
+const imgur = require('imgur');
+
 const Airtable = require('airtable');
 Airtable.configure({
 	endpointUrl: 'https://api.airtable.com',
@@ -92,16 +92,16 @@ function screenshot(website, callback) {
 function uploadToImgur(website, callback){
 	console.log("Uploading images to Imgur");
 
-	console.log("Uploading images to Imgur");
 	imgur.setCredentials(process.env.IMGUR_USER, process.env.IMGUR_PASSWORD, process.env.IMGUR_CLIENTID);
 
 	// Upload images to imgur good internet folder
-	imgur.uploadImages(screenshots, 'File', process.env.GOOD_INTERNET_IMGUR_ALBUM_ID)
+	imgur.uploadImages(website.screenshots, 'File', process.env.GOOD_INTERNET_IMGUR_ALBUM_ID)
 	.then(function(images){
-		images.map(function(images){
-			return images.
+		website.screenshotURLs = images.map(function(image){
+			console.log("Imgur image link: " + image.link);
+			return image.link;
 		})
-		callback(null);
+		callback(null, website);
 	})
 	.catch(function(err){
 		callback(err);
@@ -118,22 +118,22 @@ function addToAirtable(website, callback) {
 			Description: website.description,
 			"Desktop Screenshot": [
 				{
-					url:
-						"https://www.datocms-assets.com" + website.desktopScreenshot.path
+					url: website.screenshotURLs[0]
 				}
 			],
 			"Mobile Screenshot": [
 				{
-					url:
-					"https://www.datocms-assets.com" + website.mobileScreenshot.path
+					url: website.screenshotURLs[1]
+
 				}
 			]
 		},
 		function(err, website) {
 			if (err) {
 				console.log(`Something went wrong creating website: ${err}`);
+				callback(err);
 			}
-			callback();
+			callback(null, website);
 		}
 	);
 }
@@ -163,28 +163,28 @@ function publishSite(website, callback) {
 }
 
 
-// var cronJob = new CronJob('0 * * * * *', function() {
+var cronJob = new CronJob('0 * * * * *', function() {
 	// Check sites once a day
 	async.waterfall([
 		scrapeDesignerNews,
 		sortWebsites,
 		getMeta,
 		screenshot,
-		uploadToImgur,
-		addToAirtable,
+		// uploadToImgur,
+		// addToAirtable,
 		deleteLocalFiles,
-		publishSite
+		// publishSite
 	], function (err, results) {
 		if (err) {
 			console.log(`Something went wrong: ${err}`);
 		}
 		console.log(results);
 	});
-// }, null, false, 'Australia/Sydney');
+}, null, false, 'Australia/Sydney');
 
-// cronJob.start();
-// console.log("Job is: " + cronJob.running + " – checking for good internet daily.");
+cronJob.start();
+console.log("Job is: " + cronJob.running + " – checking for good internet daily.");
 
-// module.exports = (req, res) => {
-//   res.end('Good Internet cron is: ' + cronJob.running)
-// }
+module.exports = (req, res) => {
+  res.end('Good Internet cron is: ' + cronJob.running)
+}

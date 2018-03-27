@@ -23,9 +23,9 @@
 		"axios": "^0.16.2",
 		"babel-polyfill": "^6.23.0",
 		"cron": "^1.3.0",
-		"datocms-client": "git://github.com/absentees/js-datocms-client",
 		"dotenv": "^4.0.0",
 		"fs": "^0.0.1-security",
+		"imgur": "^0.2.1",
 		"metascraper": "^1.0.6",
 		"micro": "^9.1.4",
 		"nodemon": "^1.11.0",
@@ -35,7 +35,9 @@
 	"now": {
 		"env": {
 			"NETLIFY_DEPLOY_HOOK": "@good_netlify_hook",
-			"DATOCMS_READ_WRITE": "@good_dato_key"
+			"GOOD_INTERNET_AIRTABLE_API_KEY": "@good_airtable_key",
+			"GOOD_INTERNET_BASE_ID": "@good_airtable_base"
+
 		}
 	}
 }
