@@ -170,10 +170,10 @@ var cronJob = new CronJob('0 * * * * *', function() {
 		sortWebsites,
 		getMeta,
 		screenshot,
-		// uploadToImgur,
-		// addToAirtable,
+		uploadToImgur,
+		addToAirtable,
 		deleteLocalFiles,
-		// publishSite
+		publishSite
 	], function (err, results) {
 		if (err) {
 			console.log(`Something went wrong: ${err}`);

@@ -30,6 +30,7 @@
 		"micro": "^9.1.4",
 		"nodemon": "^1.11.0",
 		"pageres": "^4.5.0",
+		"webpack": "^4.2.0",
 		"x-ray": "^2.3.2"
 	},
 	"now": {
@@ -37,7 +38,6 @@
 			"NETLIFY_DEPLOY_HOOK": "@good_netlify_hook",
 			"GOOD_INTERNET_AIRTABLE_API_KEY": "@good_airtable_key",
 			"GOOD_INTERNET_BASE_ID": "@good_airtable_base"
-
 		}
 	}
 }
