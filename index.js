@@ -8,11 +8,16 @@ var Metascraper = require('metascraper');
 var async = require('async');
 var Pageres = require('pageres');
 const fs = require('fs');
-const SiteClient = require('datocms-client').SiteClient;
-const client = new SiteClient(process.env.DATOCMS_READ_WRITE);
 const axios = require('axios');
 var CronJob = require('cron').CronJob;
+const imgur = require('imgur');
 
+const Airtable = require('airtable');
+Airtable.configure({
+	endpointUrl: 'https://api.airtable.com',
+	apiKey: process.env.GOOD_INTERNET_AIRTABLE_API_KEY
+});
+var base = Airtable.base(process.env.GOOD_INTERNET_BASE_ID);
 
 const screenshotSizes = ['1440x1024', 'iphone 5s'];
 const filenameFormat = '<%= url %>';
@@ -30,8 +35,12 @@ function sortWebsites(allWebsites, callback) {
 function scrapeDesignerNews(callback) {
 	x('https://www.designernews.co/badges/design', '.story-list-item', [{
 		url: '.montana-item-title@href',
-		upvotes: '.upvoted-number',
+		upvotes: '.upvoted-number'
 	}])(function (err, allWebsites) {
+		if(err) {
+			console.error(err);
+		}
+
 		allWebsites.map((website) => {
 			return {
 				url: website.url,
@@ -80,7 +89,26 @@ function screenshot(website, callback) {
 		});
 }
 
-function upload(website, callback) {
+function uploadToImgur(website, callback){
+	console.log("Uploading images to Imgur");
+
+	imgur.setCredentials(process.env.IMGUR_USER, process.env.IMGUR_PASSWORD, process.env.IMGUR_CLIENTID);
+
+	// Upload images to imgur good internet folder
+	imgur.uploadImages(website.screenshots, 'File', process.env.GOOD_INTERNET_IMGUR_ALBUM_ID)
+	.then(function(images){
+		website.screenshotURLs = images.map(function(image){
+			console.log("Imgur image link: " + image.link);
+			return image.link;
+		})
+		callback(null, website);
+	})
+	.catch(function(err){
+		callback(err);
+	});
+}
+
+function addToAirtable(website, callback) {
 	console.log("Uploading files");
 
 	base("Good").create(
@@ -90,22 +118,22 @@ function upload(website, callback) {
 			Description: website.description,
 			"Desktop Screenshot": [
 				{
-					url:
-						"https://www.datocms-assets.com" + website.desktopScreenshot.path
+					url: website.screenshotURLs[0]
 				}
 			],
 			"Mobile Screenshot": [
 				{
-					url:
-					"https://www.datocms-assets.com" + website.mobileScreenshot.path
+					url: website.screenshotURLs[1]
+
 				}
 			]
 		},
 		function(err, website) {
 			if (err) {
 				console.log(`Something went wrong creating website: ${err}`);
+				callback(err);
 			}
-			callback();
+			callback(null, website);
 		}
 	);
 }
@@ -142,7 +170,8 @@ var cronJob = new CronJob('0 * * * * *', function() {
 		sortWebsites,
 		getMeta,
 		screenshot,
-		upload,
+		uploadToImgur,
+		addToAirtable,
 		deleteLocalFiles,
 		publishSite
 	], function (err, results) {
