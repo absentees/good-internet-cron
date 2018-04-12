@@ -8,6 +8,8 @@ var Metascraper = require('metascraper');
 var async = require('async');
 var Pageres = require('pageres');
 const fs = require('fs');
+const os = require('os');
+const path = require('path');
 const axios = require('axios');
 var CronJob = require('cron').CronJob;
 const imgur = require('imgur');
@@ -73,7 +75,7 @@ function screenshot(website, callback) {
 			crop: true,
 			format: "jpg"
 		})
-		.dest(process.cwd())
+		.dest(os.tmpdir())
 		.run()
 		.then((streams) => {
 
@@ -93,6 +95,8 @@ function uploadToImgur(website, callback){
 	console.log("Uploading images to Imgur");
 
 	imgur.setCredentials(process.env.IMGUR_USER, process.env.IMGUR_PASSWORD, process.env.IMGUR_CLIENTID);
+
+	console.log(website.screenshots);
 
 	// Upload images to imgur good internet folder
 	imgur.uploadImages(website.screenshots, 'File', process.env.GOOD_INTERNET_IMGUR_ALBUM_ID)
@@ -164,6 +168,8 @@ function publishSite(website, callback) {
 
 
 var cronJob = new CronJob('0 * * * * *', function() {
+//var cronJob = new CronJob('0 0 */12 * * *', function() { 
+
 	// Check sites once a day
 	async.waterfall([
 		scrapeDesignerNews,
