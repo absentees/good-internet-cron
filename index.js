@@ -60,8 +60,8 @@ async function getMeta(website) {
 	website = await Metascraper.scrapeUrl(website.url).then(metadata => {
 		website.title = metadata.title;
 		website.screenshots = [];
-		website.screenshots.push(`${__dirname + '/' + slugify(website.title)}-desktop.jpg`);
-		website.screenshots.push(`${__dirname + '/' + slugify(website.title)}-mobile.jpg`);
+		website.screenshots.push(`${os.tmpdir() + '/' + slugify(website.title)}-desktop.jpg`);
+		website.screenshots.push(`${os.tmpdir() + '/' + slugify(website.title)}-mobile.jpg`);
 		return website;
 	});
 
@@ -88,7 +88,7 @@ async function screenshot(website) {
 	});
 	await page.reload({
 		waitUntil: 'networkidle0'
-	})
+	});
 	await page.screenshot({
 		path: website.screenshots[1],
 		fullPage: true
@@ -170,7 +170,7 @@ async function publishSite(website) {
 }
 
 (async () => {
-	// var cronJob = new CronJob('0 * * * * *', function() {
+	var cronJob = new CronJob('0 * * * * *', async function() {
 	//var cronJob = new CronJob('0 0 */12 * * *', function() {
 	let websites = await scrapeDesignerNews();
 	let topWebsite = await sortWebsites(websites);
@@ -180,12 +180,12 @@ async function publishSite(website) {
 	topWebsite = await addToAirtable(topWebsite);
 	await deleteLocalFiles(topWebsite);
 	await publishSite();
-	// }, null, false, 'Australia/Sydney');
+	}, null, false, 'Australia/Sydney');
 
-	// cronJob.start();
-	// console.log("Job is: " + cronJob.running + " – checking for good internet daily.");
+	cronJob.start();
+	console.log("Job is: " + cronJob.running + " – checking for good internet daily.");
 
-	// module.exports = (req, res) => {
-	// 	res.end("Good Internet cron is: " + cronJob.running);
-	// };
+	module.exports = (req, res) => {
+		res.end("Good Internet cron is: " + cronJob.running);
+	};
 })();
