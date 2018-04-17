@@ -30,7 +30,8 @@
 		"micro": "^9.1.4",
 		"nodemon": "^1.17.3",
 		"puppeteer": "^1.2.0",
-		"x-ray": "^2.3.2"
+		"slugify": "^1.2.9",
+		"x-ray": "git+https://github.com/matthewmueller/x-ray.git"
 	},
 	"now": {
 		"env": {
