@@ -71,7 +71,10 @@ async function getMeta(website) {
 async function screenshot(website) {
 	console.log(`Taking screenshots of ${website.url}`);
 
-	const browser = await puppeteer.launch();
+	const browser = await puppeteer.launch({
+		executablePath: '/usr/bin/chromium-browser',
+		args: ['--no-sandbox', '--headless', '--disable-gpu']
+	});
 	const page = await browser.newPage();
 	await page.goto(website.url, {
 		waitUntil: 'networkidle0'
@@ -79,7 +82,8 @@ async function screenshot(website) {
 	await page.setViewport({ width: 1280, height: 800 });
 	await page.screenshot({
 		path: website.screenshots[0],
-		fullPage: true
+		fullPage: true,
+		type: 'jpeg'
 	});
 	await page.setViewport({ 
 		width: 320, 
@@ -91,7 +95,8 @@ async function screenshot(website) {
 	});
 	await page.screenshot({
 		path: website.screenshots[1],
-		fullPage: true
+		fullPage: true,
+		type: 'jpeg'
 	});
 	await browser.close();
 

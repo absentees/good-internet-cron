@@ -29,7 +29,6 @@
 		"metascraper": "^1.0.6",
 		"micro": "^9.1.4",
 		"nodemon": "^1.17.3",
-		"puppeteer": "^1.2.0",
 		"slugify": "^1.2.9",
 		"x-ray": "git+https://github.com/matthewmueller/x-ray.git"
 	},
