@@ -12,7 +12,6 @@ const imgur = require("/Users/scott-presco/GitHub/node-imgur/");
 const puppeteer = require("puppeteer");
 const slugify = require("slugify");
 
-
 const Airtable = require("airtable");
 Airtable.configure({
 	endpointUrl: "https://api.airtable.com",
@@ -21,6 +20,15 @@ Airtable.configure({
 var base = Airtable.base(process.env.GOOD_INTERNET_BASE_ID);
 
 export default {
+	validateUrl: async function (url) {
+		const urlRegex = /https?:\/\/|localhost|\./;
+
+		if (urlRegex.test(url)) {
+			return Promise.resolve(url);
+		} else {
+			return Promise.reject("URL is no good, please try again.");
+		}
+	},
 	sortWebsites: async allWebsites => {
 		try {
 			allWebsites = allWebsites.sort((a, b) => {
@@ -36,14 +44,11 @@ export default {
 	scrapeDesignerNews: async () => {
 		let websites = await x(
 			"https://www.designernews.co/badges/design",
-			".story-list-item",
-			[
-				{
-					url: ".montana-item-title@href",
-					upvotes: ".upvoted-number"
-				}
-			]
-		).then(function(res) {
+			".story-list-item", [{
+				url: ".montana-item-title@href",
+				upvotes: ".upvoted-number"
+			}]
+		).then(function (res) {
 			return res.map(website => {
 				return {
 					url: website.url,
@@ -92,7 +97,10 @@ export default {
 		await page.goto(website.url, {
 			waitUntil: "networkidle0"
 		});
-		await page.setViewport({ width: 1280, height: 800 });
+		await page.setViewport({
+			width: 1280,
+			height: 800
+		});
 		await page.screenshot({
 			path: website.screenshots[0].file,
 			fullPage: true,
@@ -130,7 +138,7 @@ export default {
 			process.env.GOOD_INTERNET_IMGUR_ALBUM_ID
 		);
 
-		website.screenshotURLs = images.map(function(image) {
+		website.screenshotURLs = images.map(function (image) {
 			console.log("Imgur image link: " + image.link);
 			return image.link;
 		});
@@ -144,22 +152,18 @@ export default {
 			Name: website.title,
 			URL: website.url,
 			Description: website.description,
-			"Desktop Screenshot": [
-				{
-					url: website.screenshotURLs[0]
-				}
-			],
-			"Mobile Screenshot": [
-				{
-					url: website.screenshotURLs[1]
-				}
-			]
+			"Desktop Screenshot": [{
+				url: website.screenshotURLs[0]
+			}],
+			"Mobile Screenshot": [{
+				url: website.screenshotURLs[1]
+			}]
 		});
 
 		return Promise.resolve(website);
 	},
 	deleteLocalFiles: async website => {
-		await website.screenshots.forEach(function(screenshot) {
+		await website.screenshots.forEach(function (screenshot) {
 			fs.unlink(screenshot.file, err => {
 				if (err) {
 					console.error("Failed to delete local file: " + error);

@@ -6,7 +6,8 @@
 	"scripts": {
 		"start": "micro index.js",
 		"dev": "nodemon index.js",
-		"cron": "babel-node index.js"
+		"cron": "babel-node index.js",
+		"cli": "babel-node cli.js"
 	},
 	"repository": {
 		"type": "git",
@@ -30,6 +31,7 @@
 		"dotenv": "^4.0.0",
 		"fs": "^0.0.1-security",
 		"imgur": "git+https://github.com/absentees/node-imgur.git",
+		"meow": "^5.0.0",
 		"metascraper": "^1.0.6",
 		"micro": "^9.1.4",
 		"nodemon": "^1.17.3",
