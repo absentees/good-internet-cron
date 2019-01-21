@@ -1,6 +1,7 @@
 #!/usr/bin/env node
+
 import goodLib from "./good-lib";
-const meow = require('meow'); 
+const meow = require('meow');
 
 const cli = meow(`
 	Will accept a single url to screenshot and post to goodinternet.online. That's it.
@@ -18,41 +19,34 @@ async function init(args) {
 		}
 
 		// Check that the URL is good
-		const url = await goodLib.validateUrl(args[0]);
-		const description = args[1];
+		let site = {
+			url: await goodLib.validateUrl(args[0]),
+			description: args[1]
+		}
+		// const url = await goodLib.validateUrl(args[0]);
+		// const description = args[1];
 
 		// Get meta information
-		const siteDetails = await goodLib.getMeta({url: url});
-		let screenshots;
+
+		site = await goodLib.getMeta(site);
+		// site.description = description;
+		// site.url = url;
 
 		// Screenshot the websites
-		if (siteDetails.url == null) {
-			screenshots = await goodLib.screenshot(url);
-		} else {
-			screenshots = await goodLib.screenshot(siteDetails.url);
-		}
+		site = await goodLib.screenshot(site);
+		site = await goodLib.uploadToImgur(site);
+		site = await goodLib.addToAirtable(site);
+		await goodLib.publishSite();
+		await goodLib.deleteLocalFiles(site);
 
-		// Upload to Imgur
-		let imgurURLs = await goodLib.uploadToImgur(screenshots);
-
-		// Upload to CMS
-		let record = await goodLib.uploadToCMS(siteDetails,url,description,imgurURLs);
-
-		// Hit Netlify hook
-		let deployed = await goodLib.publishSite();
 		console.log("All done.");
-
-		// Delete local screenshot files
-		goodLib.deleteLocalFiles(screenshots);
-
 
 	} catch (e) {
 		console.log(e.message);
 	}
 }
 
-
 // sudoBlock();
 (async () => {
-    await init(cli.input);;
+	await init(cli.input);;
 })();
