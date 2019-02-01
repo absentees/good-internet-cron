@@ -1,0 +1,11 @@
+{
+    "name": "good-internet-cron",
+    "alias": [
+        "good-internet-cron.now.sh"
+    ],
+    "version": 2,
+    "builds": [
+        { "src": "index.js", "use": "@now/node" },
+        { "src": "good-lib.js", "use": "@now/node" }
+    ]
+}

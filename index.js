@@ -8,10 +8,10 @@ import goodLib from "./good-lib";
 	let topWebsite = await goodLib.sortWebsites(websites);
 	topWebsite = await goodLib.getMeta(topWebsite);
 	topWebsite = await goodLib.screenshot(topWebsite);
-	topWebsite = await goodLib.uploadToImgur(topWebsite);
-	topWebsite = await goodLib.addToAirtable(topWebsite);
+	// topWebsite = await goodLib.uploadToImgur(topWebsite);
+	// topWebsite = await goodLib.addToAirtable(topWebsite);
 	await goodLib.deleteLocalFiles(topWebsite);
-	await goodLib.publishSite();
+	// await goodLib.publishSite();
 	// }, null, false, 'Australia/Sydney');
 
 	// cronJob.start();

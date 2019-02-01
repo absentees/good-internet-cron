@@ -8,9 +8,11 @@ const os = require("os");
 const path = require("path");
 const axios = require("axios");
 var CronJob = require("cron").CronJob;
-const imgur = require("/Users/scott-presco/GitHub/node-imgur/");
-const puppeteer = require("puppeteer");
+const imgur = require("imgur");
 const slugify = require("slugify");
+const chrome = require('chrome-aws-lambda');
+const puppeteer = require('puppeteer-core'); // Use on prod
+// const puppeteer = require('puppeteer'); // Use on local
 
 const Airtable = require("airtable");
 Airtable.configure({
@@ -86,14 +88,14 @@ export default {
 	screenshot: async website => {
 		console.log(`Taking screenshots of ${website.url}`);
 
-		// For debian docker image
-		// const browser = await puppeteer.launch({
-		// 	executablePath: '/usr/bin/chromium-browser',
-		// 	args: ['--no-sandbox', '--headless', '--disable-gpu']
-		// });
-		const browser = await puppeteer.launch();
-
+		const browser = await puppeteer.launch({
+			args: chrome.args,
+			executablePath: await chrome.executablePath,
+			headless: chrome.headless,
+		});
+		
 		const page = await browser.newPage();
+
 		await page.goto(website.url, {
 			waitUntil: "networkidle0"
 		});
