@@ -7,7 +7,6 @@ const fs = require("fs");
 const os = require("os");
 const path = require("path");
 const axios = require("axios");
-var CronJob = require("cron").CronJob;
 const imgur = require("imgur");
 const slugify = require("slugify");
 const chrome = require('chrome-aws-lambda');

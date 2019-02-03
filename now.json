@@ -5,7 +5,12 @@
     ],
     "version": 2,
     "builds": [
-        { "src": "index.js", "use": "@now/node" },
-        { "src": "good-lib.js", "use": "@now/node" }
-    ]
+        { "src": "index.js", "use": "@now/node", "config": { "maxLambdaSize": "40mb" }  },
+        { "src": "good-lib.js", "use": "@now/node", "config": { "maxLambdaSize": "40mb" }  }
+    ],
+    "env": {
+        "NETLIFY_DEPLOY_HOOK": "@good_netlify_hook",
+        "GOOD_INTERNET_AIRTABLE_API_KEY": "@good_airtable_key",
+        "GOOD_INTERNET_BASE_ID": "@good_airtable_base"
+    }
 }
