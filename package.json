@@ -2,11 +2,9 @@
 	"name": "good-internet-cron",
 	"version": "1.0.0",
 	"description": "Good Internet daily",
-	"main": "cron.js",
+	"main": "screenshot.js",
 	"scripts": {
-		"start": "micro cron.js",
-		"dev": "nodemon cron.js",
-		"cron": "babel-node cron.js",
+		"dev": "nodemon screenshot.js",
 		"cli": "babel-node cli.js",
 		"deploy": "now rm good-internet-cron -y && now && now alias"
 	},
