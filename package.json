@@ -2,12 +2,13 @@
 	"name": "good-internet-cron",
 	"version": "1.0.0",
 	"description": "Good Internet daily",
-	"main": "index.js",
+	"main": "cron.js",
 	"scripts": {
-		"start": "micro index.js",
-		"dev": "nodemon index.js",
-		"cron": "babel-node index.js",
-		"cli": "babel-node cli.js"
+		"start": "micro cron.js",
+		"dev": "nodemon cron.js",
+		"cron": "babel-node cron.js",
+		"cli": "babel-node cli.js",
+		"deploy": "now rm good-internet-cron -y && now && now alias"
 	},
 	"repository": {
 		"type": "git",
@@ -39,12 +40,5 @@
 		"puppeteer-core": "^1.11.0",
 		"slugify": "^1.2.9",
 		"x-ray": "^2.3.3"
-	},
-	"now": {
-		"env": {
-			"NETLIFY_DEPLOY_HOOK": "@good_netlify_hook",
-			"GOOD_INTERNET_AIRTABLE_API_KEY": "@good_airtable_key",
-			"GOOD_INTERNET_BASE_ID": "@good_airtable_base"
-		}
 	}
 }
