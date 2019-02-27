@@ -4,6 +4,7 @@
 	"description": "Good Internet daily",
 	"main": "screenshot.js",
 	"scripts": {
+		"build": "babel screenshot.js",
 		"dev": "nodemon screenshot.js",
 		"cli": "babel-node cli.js",
 		"deploy": "now rm good-internet-cron -y && now && now alias"
@@ -19,6 +20,8 @@
 	},
 	"homepage": "https://github.com/absentees/good-internet-cron#readme",
 	"dependencies": {
+		"@babel/cli": "^7.2.3",
+		"@babel/core": "^7.3.4",
 		"airtable": "^0.5.2",
 		"async": "^1.5.2",
 		"axios": "^0.16.2",

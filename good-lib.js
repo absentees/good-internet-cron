@@ -20,8 +20,8 @@ Airtable.configure({
 });
 var base = Airtable.base(process.env.GOOD_INTERNET_BASE_ID);
 
-export default {
-	validateUrl: async function (url) {
+export default class GoodLib {
+	async validateUrl(url){
 		const urlRegex = /https?:\/\/|localhost|\./;
 
 		if (urlRegex.test(url)) {
@@ -29,8 +29,8 @@ export default {
 		} else {
 			return Promise.reject("URL is no good, please try again.");
 		}
-	},
-	sortWebsites: async allWebsites => {
+	}
+	async sortWebsites(allWebsites) {
 		try {
 			allWebsites = allWebsites.sort((a, b) => {
 				return b.upvotes - a.upvotes;
@@ -41,8 +41,8 @@ export default {
 		} catch (error) {
 			return Promise.reject(error);
 		}
-	},
-	scrapeDesignerNews: async () => {
+	}
+	async scrapeDesignerNews() {
 		let websites = await x(
 			"https://www.designernews.co/badges/design",
 			".story-list-item", [{
@@ -59,8 +59,8 @@ export default {
 		});
 
 		return Promise.resolve(websites);
-	},
-	getMeta: async website => {
+	}
+	async getMeta(website) {
 		console.log(`Getting meta information for: ${website.url}`);
 
 		website = await Metascraper.scrapeUrl(website.url).then(metadata => {
@@ -83,8 +83,8 @@ export default {
 		});
 
 		return Promise.resolve(website);
-	},
-	screenshot: async website => {
+	}
+	async screenshot(website) {
 		console.log(`Taking screenshots of ${website.url}`);
 
 		const browser = await puppeteer.launch({
@@ -123,8 +123,8 @@ export default {
 		await browser.close();
 
 		return Promise.resolve(website);
-	},
-	uploadToImgur: async website => {
+	}
+	async uploadToImgur(website) {
 		console.log("Uploading images to Imgur");
 
 		imgur.setCredentials(
@@ -145,8 +145,8 @@ export default {
 		});
 
 		return Promise.resolve(website);
-	},
-	addToAirtable: async website => {
+	}
+	async addToAirtable(website) {
 		console.log("Uploading files");
 
 		await base("Good").create({
@@ -162,8 +162,8 @@ export default {
 		});
 
 		return Promise.resolve(website);
-	},
-	deleteLocalFiles: async website => {
+	}
+	async deleteLocalFiles(website) {
 		await website.screenshots.forEach(function (screenshot) {
 			fs.unlink(screenshot.file, err => {
 				if (err) {
@@ -175,8 +175,8 @@ export default {
 		});
 
 		return Promise.resolve();
-	},
-	publishSite: async website => {
+	}
+	async publishSite(website){
 		console.log("Publishing site.");
 		let response = await axios.post(process.env.NETLIFY_DEPLOY_HOOK);
 		return Promise.resolve(response);
