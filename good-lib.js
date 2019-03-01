@@ -20,6 +20,13 @@ Airtable.configure({
 });
 var base = Airtable.base(process.env.GOOD_INTERNET_BASE_ID);
 
+const screenshotPath  = `${os.tmpdir()}/good-internet`;
+fs.mkdir(screenshotPath, (err)=> {
+	if (err) {
+		throw err;
+	}
+});
+
 export default class GoodLib {
 	async validateUrl(url){
 		const urlRegex = /https?:\/\/|localhost|\./;
@@ -70,14 +77,12 @@ export default class GoodLib {
 			website.screenshots.push({
 				title: website.title,
 				description: website.url,
-				file: `${os.tmpdir() +
-					"/" +
-					slugify(website.title)}-desktop.jpg`
+				file: `${screenshotPath}/${slugify(website.title)}-desktop.jpg}`
 			});
 			website.screenshots.push({
 				title: website.title,
 				description: website.url,
-				file: `${os.tmpdir() + "/" + slugify(website.title)}-mobile.jpg`
+				file: `${screenshotPath}/${slugify(website.title)}-mobile.jpg`
 			});
 			return website;
 		});
@@ -126,6 +131,7 @@ export default class GoodLib {
 	}
 	async uploadToImgur(website) {
 		console.log("Uploading images to Imgur");
+		console.log(website);
 
 		imgur.setCredentials(
 			process.env.IMGUR_USER,
@@ -133,9 +139,8 @@ export default class GoodLib {
 			process.env.IMGUR_CLIENTID
 		);
 
-		let images = await imgur.uploadImages(
-			website.screenshots,
-			"File",
+		let images = await imgur.uploadFile(
+			`${screenshotPath}/*.jpg`,
 			process.env.GOOD_INTERNET_IMGUR_ALBUM_ID
 		);
 
