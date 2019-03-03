@@ -6,12 +6,14 @@
     "version": 2,
     "builds": [
         { "src": "index.js", "use": "@now/node", "config": { "maxLambdaSize": "40mb" } },
-        { "src": "screenshot.js", "use": "@now/node", "config": { "maxLambdaSize": "40mb" }  },
+        { "src": "screenshotDesignerNews.js", "use": "@now/node", "config": { "maxLambdaSize": "40mb" }  },
+        { "src": "screenshotThis.js", "use": "@now/node", "config": { "maxLambdaSize": "40mb" }  },
         { "src": "good-lib.js", "use": "@now/node", "config": { "maxLambdaSize": "40mb" }  }
     ],
     "routes": [
         { "src": "/", "dest": "/index.js"},
-        { "src": "/screenshot", "dest": "/screenshot.js"}
+        { "src": "/screenshotDesignerNews", "dest": "/screenshotDesignerNews.js"},
+        { "src": "/(.+)", "dest": "/screenshotThis.js" }
     ],
     "env": {
         "NETLIFY_DEPLOY_HOOK": "@good_netlify_hook",

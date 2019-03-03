@@ -6,7 +6,6 @@ export default async (req, res) => {
 			let goodLib = new GoodLib();
 			let websites = await goodLib.scrapeDesignerNews();
 			let topWebsite = await goodLib.sortWebsites(websites);
-			topWebsite = await goodLib.getMeta(topWebsite);
 			res.end(`<h1 style="font-family: sans-serif;">Good Internet Cron: ${topWebsite.url}</h1>`);
 	} catch (error) {
 		console.error(error);

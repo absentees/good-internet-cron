@@ -2,13 +2,10 @@ require("dotenv").config();
 require("babel-polyfill");
 var Xray = require("x-ray");
 var x = Xray();
-var Metascraper = require("metascraper");
 const fs = require("fs");
-const os = require("os");
 const path = require("path");
 const axios = require("axios");
 const imgur = require("imgur");
-const slugify = require("slugify");
 const chrome = require('chrome-aws-lambda');
 const puppeteer = require('puppeteer-core'); // Use on prod
 // const puppeteer = require('puppeteer'); // Use on local
@@ -19,13 +16,6 @@ Airtable.configure({
 	apiKey: process.env.GOOD_INTERNET_AIRTABLE_API_KEY
 });
 var base = Airtable.base(process.env.GOOD_INTERNET_BASE_ID);
-
-const screenshotPath  = `${os.tmpdir()}/good-internet`;
-fs.mkdir(screenshotPath, (err)=> {
-	if (err) {
-		throw err;
-	}
-});
 
 export default class GoodLib {
 	async validateUrl(url){
@@ -54,11 +44,12 @@ export default class GoodLib {
 			"https://www.designernews.co/badges/design",
 			".story-list-item", [{
 				url: ".montana-item-title@href",
-				upvotes: ".upvoted-number"
+				upvotes: ".story-vote-count"
 			}]
 		).then(function (res) {
 			return res.map(website => {
 				return {
+					title: website.url,
 					url: website.url,
 					upvotes: parseInt(website.upvotes)
 				};
@@ -66,28 +57,6 @@ export default class GoodLib {
 		});
 
 		return Promise.resolve(websites);
-	}
-	async getMeta(website) {
-		console.log(`Getting meta information for: ${website.url}`);
-
-		website = await Metascraper.scrapeUrl(website.url).then(metadata => {
-			console.log(metadata);
-			website.title = metadata.title;
-			website.screenshots = [];
-			website.screenshots.push({
-				title: website.title,
-				description: website.url,
-				file: `${screenshotPath}/${slugify(website.title)}-desktop.jpg}`
-			});
-			website.screenshots.push({
-				title: website.title,
-				description: website.url,
-				file: `${screenshotPath}/${slugify(website.title)}-mobile.jpg`
-			});
-			return website;
-		});
-
-		return Promise.resolve(website);
 	}
 	async screenshot(website) {
 		console.log(`Taking screenshots of ${website.url}`);
@@ -129,9 +98,8 @@ export default class GoodLib {
 
 		return Promise.resolve(website);
 	}
-	async uploadToImgur(website) {
+	async uploadToImgur(image) {
 		console.log("Uploading images to Imgur");
-		console.log(website);
 
 		imgur.setCredentials(
 			process.env.IMGUR_USER,
@@ -139,20 +107,12 @@ export default class GoodLib {
 			process.env.IMGUR_CLIENTID
 		);
 
-		let images = await imgur.uploadFile(
-			`${screenshotPath}/*.jpg`,
-			process.env.GOOD_INTERNET_IMGUR_ALBUM_ID
-		);
-
-		website.screenshotURLs = images.map(function (image) {
-			console.log("Imgur image link: " + image.link);
-			return image.link;
-		});
-
-		return Promise.resolve(website);
+		let json = await imgur.uploadFile(image,process.env.GOOD_INTERNET_IMGUR_ALBUM_ID);
+		return Promise.resolve(json.data.link);
 	}
 	async addToAirtable(website) {
 		console.log("Uploading files");
+		console.log(website);
 
 		await base("Good").create({
 			Name: website.title,
