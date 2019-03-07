@@ -21,11 +21,11 @@ export default async (req, res) => {
 			await goodLib.screenshotURL(url, screenshotPath);
 			let desktopImageLink = await goodLib.uploadToImgur(`${screenshotPath}/desktop.jpg`);
 			let mobileImageLink = await goodLib.uploadToImgur(`${screenshotPath}/mobile.jpg`);
-			topWebsite = await goodLib.addToAirtable(url, url, desktopImageLink, mobileImageLink);
+			await goodLib.addToAirtable(url, url, desktopImageLink, mobileImageLink);
 			await goodLib.deleteFile(`${screenshotPath}/desktop.jpg`);
 			await goodLib.deleteFile(`${screenshotPath}/mobile.jpg`);
 			await goodLib.publishSite();
-			res.end(`<h1 style="font-family: sans-serif;">Good Internet Cron: ${url}</h1>`);
+			res.end(`<h1 style="font-family: sans-serif;">Added: ${url}</h1>`);
 		
 	} catch (error) {
 		console.error(error);

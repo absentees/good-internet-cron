@@ -98,7 +98,7 @@ export default class GoodLib {
 			height: 800
 		});
 		await page.screenshot({
-			path: `${filePath}/desktop`,
+			path: `${filePath}/desktop.jpg`,
 			fullPage: true,
 			type: "jpeg"
 		});
@@ -111,7 +111,7 @@ export default class GoodLib {
 			waitUntil: "networkidle0"
 		});
 		await page.screenshot({
-			path: `${filePath}/mobile`,
+			path: `${filePath}/mobile.jpg`,
 			fullPage: true,
 			type: "jpeg"
 		});
