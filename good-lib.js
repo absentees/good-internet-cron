@@ -27,6 +27,13 @@ export default class GoodLib {
 			return Promise.reject("URL is no good, please try again.");
 		}
 	}
+	/**
+	 *
+	 *
+	 * @param {Array} Array 
+	 * @returns
+	 * @memberof GoodLib
+	 */
 	async sortWebsites(allWebsites) {
 		try {
 			allWebsites = allWebsites.sort((a, b) => {
@@ -39,6 +46,12 @@ export default class GoodLib {
 			return Promise.reject(error);
 		}
 	}
+	/**
+	 *
+	 *
+	 * @returns
+	 * @memberof GoodLib
+	 */
 	async scrapeDesignerNews() {
 		let websites = await x(
 			"https://www.designernews.co/badges/design",
@@ -58,8 +71,16 @@ export default class GoodLib {
 
 		return Promise.resolve(websites);
 	}
-	async screenshot(website) {
-		console.log(`Taking screenshots of ${website.url}`);
+	/**
+	 * Takes a desktop and mobile screenshot at a given path of a given url, returns an array
+	 * 
+	 * @param {*} url
+	 * @param {*} filePath
+	 * @returns
+	 * @memberof GoodLib
+	 */
+	async screenshotURL(url, filePath) {
+		console.log(`Taking screenshots of ${url}`);
 
 		const browser = await puppeteer.launch({
 			args: chrome.args,
@@ -69,7 +90,7 @@ export default class GoodLib {
 		
 		const page = await browser.newPage();
 
-		await page.goto(website.url, {
+		await page.goto(url, {
 			waitUntil: "networkidle0"
 		});
 		await page.setViewport({
@@ -77,7 +98,7 @@ export default class GoodLib {
 			height: 800
 		});
 		await page.screenshot({
-			path: website.screenshots[0].file,
+			path: `${filePath}/desktop`,
 			fullPage: true,
 			type: "jpeg"
 		});
@@ -90,16 +111,23 @@ export default class GoodLib {
 			waitUntil: "networkidle0"
 		});
 		await page.screenshot({
-			path: website.screenshots[1].file,
+			path: `${filePath}/mobile`,
 			fullPage: true,
 			type: "jpeg"
 		});
 		await browser.close();
 
-		return Promise.resolve(website);
+		return Promise.resolve();
 	}
+	/**
+	 *
+	 *
+	 * @param {*} image
+	 * @returns
+	 * @memberof GoodLib
+	 */
 	async uploadToImgur(image) {
-		console.log("Uploading images to Imgur");
+		console.log(`Uploading images to Imgur: ${image}`);
 
 		imgur.setCredentials(
 			process.env.IMGUR_USER,
@@ -110,40 +138,60 @@ export default class GoodLib {
 		let json = await imgur.uploadFile(image,process.env.GOOD_INTERNET_IMGUR_ALBUM_ID);
 		return Promise.resolve(json.data.link);
 	}
-	async addToAirtable(website) {
-		console.log("Uploading files");
-		console.log(website);
 
-		await base("Good").create({
-			Name: website.title,
-			URL: website.url,
-			Description: website.description,
+	async addToAirtable(title, url, desktopImageLink, mobileImageLink) {
+		console.log("Uploading files");
+		console.log(url);
+
+		let record = await base("Good").create({
+			Name: title,
+			URL: url,
 			"Desktop Screenshot": [{
-				url: website.screenshotURLs[0]
+				url: desktopImageLink
 			}],
 			"Mobile Screenshot": [{
-				url: website.screenshotURLs[1]
+				url: mobileImageLink
 			}]
 		});
 
-		return Promise.resolve(website);
+		return Promise.resolve(record);
 	}
-	async deleteLocalFiles(website) {
-		await website.screenshots.forEach(function (screenshot) {
-			fs.unlink(screenshot.file, err => {
-				if (err) {
-					console.error("Failed to delete local file: " + error);
-				} else {
-					console.log("Deleted local: " + screenshot.file);
-				}
-			});
+	/**
+	 *
+	 *
+	 * @param {*} website
+	 * @returns
+	 * @memberof GoodLib
+	 */
+	async deleteFile(filePath) {
+
+		fs.unlink(filePath, err => {
+			if (err) {
+				console.error("Failed to delete local file: " + error);
+			} else {
+				console.log("Deleted local: " + filePath);
+			}
 		});
 
 		return Promise.resolve();
 	}
+	/**
+	 *
+	 *
+	 * @param {*} website
+	 * @returns
+	 * @memberof GoodLib
+	 */
 	async publishSite(website){
 		console.log("Publishing site.");
 		let response = await axios.post(process.env.NETLIFY_DEPLOY_HOOK);
 		return Promise.resolve(response);
+	}
+	getUrlFromPath(str) {
+		let url = str.slice(1);
+		if (!url.startsWith('http')) {
+			return 'https://' + url;
+		}
+		return url;
 	}
 };

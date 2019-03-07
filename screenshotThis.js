@@ -3,36 +3,30 @@ import GoodLib from './good-lib';
 const fs = require("fs");
 const os = require("os");
 const slugify = require("slugify");
+const { parse } = require('url');
 
 export default async (req, res) => {
 	try {
 			const screenshotPath  = `${os.tmpdir()}/good-internet`;
 			fs.mkdir(screenshotPath, (err)=> {
 				if (err) {
-					console.errer(err);
+					console.error(err);
 				}
 			});
 
 			let goodLib = new GoodLib();
-			topWebsite.screenshots = [];
-			topWebsite.screenshotURLs = [];
-			topWebsite.screenshots.push({
-				title: topWebsite.title,
-				description: topWebsite.url,
-				file: `${screenshotPath}/${slugify(topWebsite.title)}-desktop.jpg}`
-			});
-			topWebsite.screenshots.push({
-				title: topWebsite.title,
-				description: topWebsite.url,
-				file: `${screenshotPath}/${slugify(topWebsite.title)}-mobile.jpg`
-			});
-			topWebsite = await goodLib.screenshot(topWebsite);
-			topWebsite.screenshotURLs.push(await goodLib.uploadToImgur(topWebsite.screenshots[0].file));
-			topWebsite.screenshotURLs.push(await goodLib.uploadToImgur(topWebsite.screenshots[1].file));
-			topWebsite = await goodLib.addToAirtable(topWebsite);
-			await goodLib.deleteLocalFiles(topWebsite);
+			let url = parse(req.url, true);
+			url = goodLib.getUrlFromPath(url.pathname); 
+
+			await goodLib.screenshotURL(url, screenshotPath);
+			let desktopImageLink = await goodLib.uploadToImgur(`${screenshotPath}/desktop.jpg`);
+			let mobileImageLink = await goodLib.uploadToImgur(`${screenshotPath}/mobile.jpg`);
+			topWebsite = await goodLib.addToAirtable(url, url, desktopImageLink, mobileImageLink);
+			await goodLib.deleteFile(`${screenshotPath}/desktop.jpg`);
+			await goodLib.deleteFile(`${screenshotPath}/mobile.jpg`);
 			await goodLib.publishSite();
-			res.end(`<h1 style="font-family: sans-serif;">Good Internet Cron: ${topWebsite.url}</h1>`)
+			res.end(`<h1 style="font-family: sans-serif;">Good Internet Cron: ${url}</h1>`);
+		
 	} catch (error) {
 		console.error(error);
 	}
